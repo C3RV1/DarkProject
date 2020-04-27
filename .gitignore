@@ -1,0 +1,4 @@
+# Specify filepatterns you want git to ignore.
+/venv/
+/.idea/
+/game_data/sprites/coffin_dance/

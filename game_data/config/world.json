@@ -1,4 +1,4 @@
 {
   "world_size": [128, 128],
-  "max_room_size": [128, 128]
+  "max_room_size": [64, 64]
 }

@@ -62,3 +62,7 @@ class Animation(object):
     def reset(self):
         self.time_since_last = 0
         self.current_frame = 0
+
+    @property
+    def percentage(self):
+        return float(self.current_frame) / float(len(self.frames))

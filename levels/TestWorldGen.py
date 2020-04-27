@@ -18,17 +18,13 @@ class TestWorldGen:
         self.cam = Camera.Camera(self.game_manager)
 
         self.world_gen = WorldGenerator.WorldGenerator(self.game_manager, "game_data/config/world.json",
-                                                       "game_data/worlds/test_world",
-                                                       Vector2D(0, 0), camera=self.cam)
+                                                       "game_data/worlds/test_world", camera=self.cam)
 
         self.player = Player.PlayerObject(self.game_manager, self.world_gen, position=Vector2D(1280 / 2,
                                                                                                720 / 2),
-                                          camera=self.cam)
+                                          camera=self.cam, obj_data=self.world_gen.load_player())
 
         self.cam.position = self.player.position.copy()
-
-        self.cam.world_size.x = self.player.current_room.tilemap.r_image_scaled.get_width()
-        self.cam.world_size.y = self.player.current_room.tilemap.r_image_scaled.get_height()
 
         self.cam.target(self.player.position)
 
@@ -45,7 +41,7 @@ class TestWorldGen:
     def draw(self):
         self.player.current_room.draw(self.game_manager.screen, self.game_manager.delta_time)
 
-        pygame.draw.circle(self.game_manager.screen, (255, 255, 255), self.cam.position.list(),
-                           5)
+        """pygame.draw.circle(self.game_manager.screen, (255, 255, 255), self.cam.position.list(),
+                           5)"""
 
         self.player.extra_draw()

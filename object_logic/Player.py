@@ -14,8 +14,8 @@ class PlayerObject(Object):
             self.position = position
             self.screen = Vector2D(0, 0)
         else:
-            self.position = obj_data["position"]
-            self.screen = obj_data["screen"]
+            self.position = Vector2D(lst=obj_data["position"])
+            self.screen = Vector2D(lst=obj_data["screen"])
 
         self.animation_base_folder = "game_data/sprites/player"
         self.animations_to_load = [{"name": "wake_up",
@@ -32,7 +32,7 @@ class PlayerObject(Object):
 
         self.world_generator = world_generator  # type: WorldGenerator
         self.current_room = None
-        self.change_current_room(0, 0)
+        self.change_current_room(self.screen.x, self.screen.y)
 
         self.game_manager = game_manager  # type: GameManager.GameManager
 
@@ -49,6 +49,10 @@ class PlayerObject(Object):
                                                   loop=True,
                                                   scale=2,
                                                   frames_per_second=2)
+
+        # Fade in
+        self.fade_in_surface = pygame.Surface(self.game_manager.screen.get_size())
+        self.fade_in_surface.fill((0, 0, 0))
 
     def behaviour(self, events):
         if not self.interacting and not self.current_animation == "wake_up":
@@ -75,6 +79,8 @@ class PlayerObject(Object):
                             self.current_room.objects[self.interacting_object].interacting = True
                             self.current_room.objects[self.interacting_object].interacting_type = InteractionType.MENU
                     if event.key == pygame.K_ESCAPE:
+                        self.world_generator.save_room()
+                        self.world_generator.save_player(self)
                         self.game_manager.exit()
 
             pressed_keys = pygame.key.get_pressed()
@@ -87,6 +93,23 @@ class PlayerObject(Object):
                 self.position.x -= self.move_speed * self.game_manager.delta_time
             if pressed_keys[pygame.K_d]:
                 self.position.x += self.move_speed * self.game_manager.delta_time
+
+        if self.position.x >= self.current_room.tilemap.r_image_scaled.get_width():
+            self.screen.x += 1
+            self.change_current_room(self.screen.x, self.screen.y)
+            self.position.set(self.current_room.connections[2][0] * 8 * 4, self.current_room.connections[2][1] * 8 * 4)
+        elif self.position.x < 0:
+            self.screen.x -= 1
+            self.change_current_room(self.screen.x, self.screen.y)
+            self.position.set(self.current_room.connections[3][0] * 8 * 4, self.current_room.connections[3][1] * 8 * 4)
+        if self.position.y >= self.current_room.tilemap.r_image_scaled.get_height():
+            self.screen.y += 1
+            self.change_current_room(self.screen.x, self.screen.y)
+            self.position.set(self.current_room.connections[0][0] * 8 * 4, self.current_room.connections[0][1] * 8 * 4)
+        elif self.position.y < 0:
+            self.screen.y -= 1
+            self.change_current_room(self.screen.x, self.screen.y)
+            self.position.set(self.current_room.connections[1][0] * 8 * 4, self.current_room.connections[1][1] * 8 * 4)
 
         if self.interacting:
             if self.current_room.objects[self.interacting_object].interacting:
@@ -105,9 +128,22 @@ class PlayerObject(Object):
             self.current_room.objects[self.interacting_object].custom_interacting_draw(self.game_manager.screen)
             pygame.draw.circle(self.game_manager.screen, (255, 0, 0), (100, 100), 5)
 
+        if self.current_animation == "wake_up":
+            self.fade_in_surface.set_alpha(255 - int(255 * self.animations[self.current_animation].percentage))
+            self.game_manager.screen.blit(self.fade_in_surface, (0, 0))
+
     def change_current_room(self, x, y):
         self.world_generator.save_room()
         self.world_generator.current_room.x = x
         self.world_generator.current_room.y = y
         self.current_room = self.world_generator.get_current_room()
         self.current_room.objects.append(self)
+
+        self.camera.world_size.x = self.current_room.tilemap.r_image_scaled.get_width()
+        self.camera.world_size.y = self.current_room.tilemap.r_image_scaled.get_height()
+
+    def pack(self):
+        packed_dict = {}
+        packed_dict["position"] = self.position.list()
+        packed_dict["screen"] = self.screen.list()
+        return packed_dict

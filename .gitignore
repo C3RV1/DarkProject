@@ -2,3 +2,4 @@
 /venv/
 /.idea/
 /game_data/sprites/coffin_dance/
+*.pyc

@@ -176,7 +176,7 @@ class WorldGenerator:
         player_path = self.world_folder + "/player.json"
         if not os.path.isfile(player_path):
             return None
-        player_file = open(player_path, "wb")
+        player_file = open(player_path, "rb")
         player_data = json.loads(player_file.read())
         player_file.close()
         return player_data

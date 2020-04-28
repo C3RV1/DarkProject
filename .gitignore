@@ -3,3 +3,4 @@
 /.idea/
 /game_data/sprites/coffin_dance/
 *.pyc
+/game_data/worlds/

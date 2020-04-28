@@ -14,8 +14,8 @@ class PlayerObject(Object):
             self.position = position
             self.screen = Vector2D(0, 0)
         else:
-            self.position = Vector2D(lst=obj_data["position"])
-            self.screen = Vector2D(lst=obj_data["screen"])
+            self.position = Vector2D(0, 0, lst=obj_data["position"])
+            self.screen = Vector2D(0, 0, lst=obj_data["screen"])
 
         self.animation_base_folder = "game_data/sprites/player"
         self.animations_to_load = [{"name": "wake_up",

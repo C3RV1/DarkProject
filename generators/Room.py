@@ -6,6 +6,7 @@ import random
 from utils.Vector2D import Vector2D
 from utils.Camera import Camera
 import json
+import math
 
 
 class ConnectionGenerator:
@@ -35,7 +36,7 @@ class ConnectionGenerator:
             return
 
         if self.world.world_bounds[0] <= x <= self.world.world_bounds[2]\
-                and self.world.world_bounds[1] <= y <= self.world.world_bounds[3]:
+                and self.world.world_bounds[1] * 2 <= y <= self.world.world_bounds[3] * 2:
             self.connection_id = (x * (world_generator.world_bounds[3] + 1) + y) + self.world.seed
             self.this_rand.seed(self.connection_id)
 
@@ -183,31 +184,35 @@ class RoomGenerator:
                     continue
                 connection_position = self.connections[connection].position.copy()
                 if connection < 2:
-                    while connection_position.y != int(self.room_real_size.y / 2):
+                    while connection_position.y != math.floor(self.room_real_size.y / 2.0):
                         self.room_map[connection_position.x][connection_position.y] = RoomTiles.FLOOR
-                        if connection_position.y > int(self.room_real_size.y / 2):
+                        if connection_position.y > math.floor(self.room_real_size.y / 2.0):
                             connection_position.y -= 1
                         else:
                             connection_position.y += 1
-                    while connection_position.x != int(self.room_real_size.x / 2):
                         self.room_map[connection_position.x][connection_position.y] = RoomTiles.FLOOR
-                        if connection_position.x > int(self.room_real_size.x / 2):
+                    while connection_position.x != math.floor(self.room_real_size.x / 2.0):
+                        self.room_map[connection_position.x][connection_position.y] = RoomTiles.FLOOR
+                        if connection_position.x > math.floor(self.room_real_size.x / 2.0):
                             connection_position.x -= 1
                         else:
                             connection_position.x += 1
+                        self.room_map[connection_position.x][connection_position.y] = RoomTiles.FLOOR
                 else:
-                    while connection_position.x != int(self.room_real_size.x / 2):
+                    while connection_position.x != math.floor(self.room_real_size.x / 2.0):
                         self.room_map[connection_position.x][connection_position.y] = RoomTiles.FLOOR
-                        if connection_position.x > int(self.room_real_size.x / 2):
+                        if connection_position.x > math.floor(self.room_real_size.x / 2.0):
                             connection_position.x -= 1
                         else:
                             connection_position.x += 1
-                    while connection_position.y != int(self.room_real_size.y / 2):
                         self.room_map[connection_position.x][connection_position.y] = RoomTiles.FLOOR
-                        if connection_position.y > int(self.room_real_size.y / 2):
+                    while connection_position.y != math.floor(self.room_real_size.y / 2.0):
+                        self.room_map[connection_position.x][connection_position.y] = RoomTiles.FLOOR
+                        if connection_position.y > math.floor(self.room_real_size.y / 2.0):
                             connection_position.y -= 1
                         else:
                             connection_position.y += 1
+                        self.room_map[connection_position.x][connection_position.y] = RoomTiles.FLOOR
 
     def generate_walls(self):
         for x in [(self.room_real_size.x - self.room_size.x) / 2 - 1,
@@ -317,16 +322,6 @@ class RoomRenderer:
         elif self.get(x, y + 1) != RoomTiles.WALL:
             tile = "wall_front"
 
-        elif self.get(x, y + 1) == RoomTiles.WALL and self.get(x + 1, y) == RoomTiles.WALL and\
-                (self.get(x + 1, y + 1) == RoomTiles.WALL or self.get(x - 1, y + 1) == RoomTiles.WALL) and\
-                not (self.get(x - 1, y) == RoomTiles.WALL or self.get(x, y - 1) == RoomTiles.WALL):
-            tile = "wall_corner_1"
-
-        elif self.get(x, y + 1) == RoomTiles.WALL and self.get(x - 1, y) == RoomTiles.WALL and\
-                (self.get(x + 1, y + 1) == RoomTiles.WALL or self.get(x - 1, y + 1) == RoomTiles.WALL) and\
-                not (self.get(x + 1, y) == RoomTiles.WALL or self.get(x, y - 1) == RoomTiles.WALL):
-            tile = "wall_corner_2"
-
         elif self.get(x, y - 1) == RoomTiles.WALL and self.get(x, y + 1) == RoomTiles.WALL and self.get(x, y + 2) == RoomTiles.WALL:
             tile = "wall_mid"
 
@@ -337,6 +332,24 @@ class RoomRenderer:
         elif self.get(x, y - 1) != RoomTiles.WALL and self.get(x, y + 1) == RoomTiles.WALL and\
                 self.get(x - 1, y) != RoomTiles.WALL and self.get(x + 1, y) != RoomTiles.WALL:
             tile = "wall_up_end"
+
+        elif self.get(x - 1, y) != RoomTiles.WALL and self.get(x + 1, y) == RoomTiles.WALL and\
+                self.get(x, y + 2) != RoomTiles.WALL and self.get(x, y - 1) != RoomTiles.WALL:
+            tile = "wall_left_end"
+
+        elif self.get(x + 1, y) != RoomTiles.WALL and self.get(x - 1, y) == RoomTiles.WALL and\
+                self.get(x, y + 2) != RoomTiles.WALL and self.get(x, y - 1) != RoomTiles.WALL:
+            tile = "wall_right_end"
+
+        elif self.get(x, y + 1) == RoomTiles.WALL and self.get(x + 1, y) == RoomTiles.WALL and\
+                (self.get(x + 1, y + 1) == RoomTiles.WALL or self.get(x - 1, y + 1) == RoomTiles.WALL) and\
+                not (self.get(x - 1, y) == RoomTiles.WALL or self.get(x, y - 1) == RoomTiles.WALL):
+            tile = "wall_corner_1"
+
+        elif self.get(x, y + 1) == RoomTiles.WALL and self.get(x - 1, y) == RoomTiles.WALL and\
+                (self.get(x + 1, y + 1) == RoomTiles.WALL or self.get(x - 1, y + 1) == RoomTiles.WALL) and\
+                not (self.get(x + 1, y) == RoomTiles.WALL or self.get(x, y - 1) == RoomTiles.WALL):
+            tile = "wall_corner_2"
 
         self.tilemap.change_block_at(x, y, tile, make_scaled=False)
 

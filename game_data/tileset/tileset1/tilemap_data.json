@@ -18,7 +18,7 @@
     "wall_corner_2": [7, 3],
     "wall_down_end": [5, 2],
     "wall_up_end": [7, 2],
-    "wall_left_end": [0, 0],
-    "wall_right_end": [0, 0]
+    "wall_left_end": [8, 0],
+    "wall_right_end": [7, 0]
   }
 }

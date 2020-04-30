@@ -1,4 +1,6 @@
 import math
+import pygame
+import numpy
 
 
 # Make an position relative to another
@@ -68,3 +70,9 @@ def vector_look_at(p1, p2):
     x_change = p1[0] - p2[0]
     y_change = p1[1] - p2[1]
     return to360rotation(radian_to_degree(math.atan2(y_change, x_change)))
+
+
+def invert_surface(surface):
+    pixels = pygame.surfarray.pixels2d(surface)
+    pixels ^= 2 ** 32 - 1
+    del pixels

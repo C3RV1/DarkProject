@@ -2,6 +2,7 @@ import pygame
 from Ray import Ray
 from Vector2D import Vector2D
 import time
+from Polygon import Polygon
 
 
 def draw_mask(polygons, light_point, surface):
@@ -56,12 +57,14 @@ def draw_mask(polygons, light_point, surface):
 def optimized_shadows(polygons, light_point, surface, box_borders=(Vector2D(0, 0),
                                                                    Vector2D(1280, 0),
                                                                    Vector2D(1280, 720),
-                                                                   Vector2D(0, 720))):
+                                                                   Vector2D(0, 720)),
+                      color=(0, 0, 0)):
     # need to understand https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
     # need to understand https://thecodingtrain.com/CodingChallenges/145-2d-ray-casting.html
 
     for polygon in range(0, len(polygons)):
-        polygons[polygon] = polygons[polygon].get_points()
+        if isinstance(polygons[polygon], Polygon):
+            polygons[polygon] = polygons[polygon].get_points()
 
     screen_borders = list(box_borders)
 
@@ -134,7 +137,7 @@ def optimized_shadows(polygons, light_point, surface, box_borders=(Vector2D(0, 0
             polygon_points.extend([casted_points[points[1]].list(),
                                    polygon[points[1]].list()])
             try:
-                pygame.draw.polygon(surface, (0, 0, 0), polygon_points)
+                pygame.draw.polygon(surface, color, polygon_points)
             except Exception as e:
                 print polygon_points
                 raise e

@@ -48,7 +48,7 @@ class TestLevel:
         self.surface_to_screen = pygame.Surface((self.game_manager.screen.get_width(),
                                                  self.game_manager.screen.get_height()), pygame.HWSURFACE)
 
-        self.circle_gradient_size = 500
+        self.circle_gradient_size = 100
         self.circle_gradient = pygame.Surface([self.circle_gradient_size * 2,
                                                self.circle_gradient_size * 2], pygame.HWSURFACE)
 
@@ -65,7 +65,7 @@ class TestLevel:
                 else:
                     self.circle_gradient.set_at((x, y), (value, value, value))
 
-        pygame.image.save(self.circle_gradient, "game_data/images/lightning/default.png")
+        pygame.image.save(self.circle_gradient, "game_data/images/light/small.png")
 
         """self.view_angle = 10
         self.view_distance = (self.distance_angle_inverse_relation / (self.view_angle**self.smoother))"""

@@ -8,11 +8,14 @@ from utils.Camera import Camera
 import json
 import math
 import time
+from utils import math2d
 
 from objects.BakedLightObject import BackedLightObject
 from objects.Object import Object
 from objects.RealtimeLightObject import RealtimeLightObject
+from objects.UnlitObject import UnlitObject
 from utils import Shadow
+from utils import Polygon
 
 
 # INNER ROOM CONNECTIONS
@@ -506,13 +509,17 @@ class RoomRenderer:
         self.connections = connections  # Connections (used when the player changes the screen he is in)
 
         self.light_map = None
+        self.temp_light_map = None
 
         self.display_surface = None
+
+        self.collisions = []
 
     def render(self):
         self.render_tiles()
         self.tilemap.scale()
         self.make_light_map()
+        self.render_collisions()
         self.render_light_map()
 
     def fix(self):
@@ -625,11 +632,26 @@ class RoomRenderer:
                            min(self.tilemap.r_image_scaled.get_height(),
                                self.camera.real_position.y + surface.get_height())))
 
-        for obj in self.objects:
-            obj.position_to_real()
-            surface.blit(obj.get_render(delta_time), obj.real_position.list())
+        tmp_light_map = self.light_map.copy()
 
-        surface.blit(self.light_map, (max(0, -self.camera.real_position.x),
+        unlit_objects = []
+
+        for obj in self.objects:
+            if isinstance(obj, UnlitObject):
+                unlit_objects.append(obj)
+            else:
+                obj.position_to_real()
+                surface.blit(obj.get_render(delta_time), obj.real_position.list())
+            if isinstance(obj, RealtimeLightObject):
+                position = obj.position.copy()
+                position.x -= obj.light_image.get_width() / 2
+                position.y -= obj.light_image.get_height() / 2
+                position += obj.light_offset
+                tmp_light_map.blit(obj.light_image, position.list(), special_flags=pygame.BLEND_RGB_MULT)
+
+        math2d.invert_surface(tmp_light_map)
+
+        surface.blit(tmp_light_map, (max(0, -self.camera.real_position.x),
                                       max(0, -self.camera.real_position.y)),
                      area=(max(0, self.camera.real_position.x),
                            max(0, self.camera.real_position.y),
@@ -639,23 +661,50 @@ class RoomRenderer:
                                self.camera.real_position.y + surface.get_height())),
                      special_flags=pygame.BLEND_RGB_MULT)
 
+        for unlit_obj in unlit_objects:
+            unlit_obj.position_to_real()
+            surface.blit(unlit_obj.get_render(delta_time), unlit_obj.real_position.list())
+
+        """for collider in self.collisions:
+            points = collider.get_points()
+            for i in range(0, len(points)):
+                points[i] = points[i].list()
+            pygame.draw.polygon(surface, (0, 255, 0), points)"""
+
     def make_light_map(self):
         self.light_map = pygame.Surface((self.tilemap.r_image_scaled.get_width(),
                                          self.tilemap.r_image_scaled.get_height()),
                                         flags=pygame.HWSURFACE)
 
     def render_light_map(self):
-        temp_screen = pygame.Surface((self.tilemap.r_image_scaled.get_width(),
-                                      self.tilemap.r_image_scaled.get_height()), flags=pygame.HWSURFACE)
+        self.light_map.fill((255, 255, 255))
+        tmp_light_map = pygame.Surface((self.light_map.get_width(),
+                                        self.light_map.get_height()),
+                                       flags=pygame.HWSURFACE)
         for obj in self.objects:  # type: Object
             if isinstance(obj, BackedLightObject):
-                temp_screen.fill((0, 0, 0))
+                tmp_light_map.fill((255, 255, 255))
                 position = obj.position.copy()
                 position.x -= obj.light_image.get_width() / 2
                 position.y -= obj.light_image.get_height() / 2
-                temp_screen.blit(obj.light_image, position.list())
-                self.light_map.blit(temp_screen, (0, 0), special_flags=pygame.BLEND_RGB_ADD)
+                tmp_light_map.blit(obj.light_image, position.list())
+                Shadow.optimized_shadows(self.collisions, obj.position.copy(), tmp_light_map,
+                                         box_borders=[Vector2D(0, 0), Vector2D(self.light_map.get_width(), 0),
+                                                      Vector2D(self.light_map.get_width(),
+                                                               self.light_map.get_height()),
+                                                      Vector2D(0, self.light_map.get_height())],
+                                         color=(255, 255, 255))
+                self.light_map.blit(tmp_light_map, (0, 0), special_flags=pygame.BLEND_RGBA_MULT)
 
-        pixels2 = pygame.surfarray.array2d(self.light_map)
-        del pixels2
+    def render_collisions(self):
+        self.collisions = []
+        for x in range(0, len(self.room_map)):
+            for y in range(0, len(self.room_map[0])):
+                if self.get(x, y) != RoomTiles.WALL or self.get(x, y + 1) != RoomTiles.WALL:
+                    continue
+                self.collisions.append(Polygon.Polygon(Vector2D(x*8*4, y*8*4),
+                                                       [Vector2D(0, 0),
+                                                        Vector2D(8*4, 0),
+                                                        Vector2D(8*4, 8*4),
+                                                        Vector2D(0, 8*4)]))
 

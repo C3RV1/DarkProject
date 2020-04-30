@@ -3,13 +3,16 @@ from utils.Vector2D import Vector2D
 from generators.WorldGenerator import WorldGenerator
 from objects.InteractiveObject import InteractiveObject, InteractionType
 from objects.RealtimeLightObject import RealtimeLightObject
+from objects.UnlitObject import UnlitObject
 from sprites.Animation import Animation
 import GameManager
 import pygame
 
 
-class PlayerObject(Object):
+class PlayerObject(RealtimeLightObject, Object):
     def __init__(self, game_manager, world_generator, camera, obj_data=None, position=Vector2D(0, 0)):
+        RealtimeLightObject.__init__(self, pygame.image.load("game_data/images/light/small.png").convert(),
+                                     Vector2D(0, 0))
         Object.__init__(self, 65, camera=camera)
         if obj_data is None:
             self.position = position

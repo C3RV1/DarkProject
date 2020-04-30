@@ -1,7 +1,7 @@
 import pygame
 import GameManager
 from utils import Button, TextBox
-from levels import TestLevel2
+from scenes import TestLevel2
 
 
 class MainMenu:

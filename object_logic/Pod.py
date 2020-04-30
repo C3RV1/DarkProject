@@ -1,13 +1,15 @@
-from generators.Object import Object
-from generators.InteractiveObject import InteractiveObject
+from objects.Object import Object
+from objects.InteractiveObject import InteractiveObject
+from objects.BakedLightObject import BackedLightObject
 from utils.Vector2D import Vector2D
 import pygame
 
 
-class PodObject(InteractiveObject, Object):
+class PodObject(InteractiveObject, BackedLightObject, Object):
     def __init__(self, obj_data, cam):
         Object.__init__(self, obj_id=0, camera=cam)
         InteractiveObject.__init__(self)
+        BackedLightObject.__init__(self, pygame.image.load("game_data/images/light/default.png").convert())
         self.position = Vector2D(0, 0, lst=obj_data["pos"])
 
         self.animation_base_folder = "game_data/sprites/objects/pod"

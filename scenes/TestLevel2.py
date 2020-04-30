@@ -40,7 +40,7 @@ class TestLevel:
 
         self.distance_angle_inverse_relation = self.view_angle**self.smoother * self.view_distance
 
-        self.background = pygame.image.load("game_data/levels/test_level_background.png").convert_alpha()
+        self.background = pygame.image.load("game_data/levels/test_level_background.png").convert()
 
         self.rotation = 0
         self.rotation_speed = 90
@@ -64,6 +64,8 @@ class TestLevel:
                     self.circle_gradient.set_at((x, y), 0)
                 else:
                     self.circle_gradient.set_at((x, y), (value, value, value))
+
+        pygame.image.save(self.circle_gradient, "game_data/images/lightning/default.png")
 
         """self.view_angle = 10
         self.view_distance = (self.distance_angle_inverse_relation / (self.view_angle**self.smoother))"""
@@ -95,7 +97,8 @@ class TestLevel:
     def main_loop(self, events):
         # self.game_manager.screen.fill((255, 255, 255))
         self.game_manager.screen.blit(self.background, (0, 0))
-        self.surface_to_screen.fill((0, 0, 0, 0))
+        # self.surface_to_screen.fill((0, 0, 0, 0))
+        self.surface_to_screen.fill((0, 0, 0))
 
         mouse_pos = Vector2D(0, 0, lst=pygame.mouse.get_pos())
 
@@ -153,23 +156,23 @@ class TestLevel:
         triangle_point_1.rotate(triangle_point_1_ang)
         triangle_point_2.rotate(triangle_point_2_ang)
 
-        triangle_point_1 = self.set_point_distance(triangle_point_1, self.view_distance-2)
-        triangle_point_2 = self.set_point_distance(triangle_point_2, self.view_distance-2)
-
-        back_light = Vector2D(0, -10)
-        back_light.rotate(self.rotation)
+        triangle_point_1 += self.light_point
+        triangle_point_2 += self.light_point
 
         self.view_distance = int(self.view_distance)
 
         polygons = list(self.polygons)
-        polygons.append(Polygon.Polygon(self.light_point, [back_light, triangle_point_1, triangle_point_2]))
 
-        Shadow.draw_mask(polygons, self.light_point, self.surface_to_screen)
+        pygame.draw.polygon(self.surface_to_screen, (255, 255, 255), [triangle_point_1.list(),
+                                                                      triangle_point_2.list(),
+                                                                      self.light_point.list()])
 
-        self.surface_to_screen.blit(self.circle_gradient,
+        Shadow.optimized_shadows(polygons, self.light_point, self.surface_to_screen)
+
+        """self.surface_to_screen.blit(self.circle_gradient,
                                     [self.light_point.x - self.circle_gradient.get_width() / 2,
                                      self.light_point.y - self.circle_gradient.get_height() / 2],
-                                    special_flags=pygame.BLEND_RGB_MULT)
+                                    special_flags=pygame.BLEND_RGB_MULT)"""
 
         self.game_manager.screen.blit(self.surface_to_screen, (0, 0), special_flags=pygame.BLEND_RGB_MULT)
 

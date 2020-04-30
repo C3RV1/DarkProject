@@ -1,7 +1,8 @@
-from generators.Object import Object
+from objects.Object import Object
 from utils.Vector2D import Vector2D
 from generators.WorldGenerator import WorldGenerator
-from generators.InteractiveObject import InteractiveObject, InteractionType
+from objects.InteractiveObject import InteractiveObject, InteractionType
+from objects.RealtimeLightObject import RealtimeLightObject
 from sprites.Animation import Animation
 import GameManager
 import pygame
@@ -27,11 +28,14 @@ class PlayerObject(Object):
                                     "loop": True,
                                     "fps": 2}]
 
+        self.font = pygame.font.Font("game_data/fonts/press_start_2p.ttf", 20)
+
         self.load_animations()
         self.set_animation("wake_up")
 
         self.world_generator = world_generator  # type: WorldGenerator
         self.current_room = None
+        self.current_screen_text = None
         self.change_current_room(self.screen.x, self.screen.y)
 
         self.game_manager = game_manager  # type: GameManager.GameManager
@@ -132,6 +136,8 @@ class PlayerObject(Object):
             self.fade_in_surface.set_alpha(255 - int(255 * self.animations[self.current_animation].percentage))
             self.game_manager.screen.blit(self.fade_in_surface, (0, 0))
 
+        self.game_manager.screen.blit(self.current_screen_text, (0, 0))
+
     def change_current_room(self, x, y):
         self.world_generator.save_room()
         self.world_generator.current_room.x = x
@@ -141,6 +147,8 @@ class PlayerObject(Object):
 
         self.camera.world_size.x = self.current_room.tilemap.r_image_scaled.get_width()
         self.camera.world_size.y = self.current_room.tilemap.r_image_scaled.get_height()
+
+        self.current_screen_text = self.font.render("Screen: {}, {}".format(x, y), False, (255, 255, 255))
 
     def pack(self):
         packed_dict = {}

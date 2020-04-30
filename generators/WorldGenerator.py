@@ -3,7 +3,7 @@ from utils.Vector2D import Vector2D
 import json
 import random
 import Room
-from Object import Object, ObjectUnpacker
+from objects.Object import Object, ObjectUnpacker
 from utils.Camera import Camera
 import GameManager
 
@@ -119,7 +119,7 @@ class WorldGenerator:
         room_path = self.world_folder + "/rooms/room_{}_{}.json".format(int(self.current_room.x),
                                                                         int(self.current_room.y))
         if not os.path.isfile(room_path):
-            Room.RoomGenerator(self.current_room.copy(), self)
+            Room.ScreenGenerator(self.current_room.copy(), self)
 
         room_file = open(room_path, "rb")
         room_json = room_file.read()
@@ -130,12 +130,18 @@ class WorldGenerator:
         room_map = room_data["map"]
         room_objects = room_data["objects"]
         room_connections = room_data["connections"]
+        new_room_objects = []
         for obj in range(0, len(room_objects)):
-            room_objects[obj] = ObjectUnpacker.unpack(room_objects[obj], self.camera)
+            obj_to_add = ObjectUnpacker.unpack(room_objects[obj], self.camera)
+            if isinstance(obj_to_add, Object):
+                new_room_objects.append(obj_to_add)
+        room_objects = new_room_objects
 
         room_renderer = Room.RoomRenderer(room_map, "game_data/tileset/tileset1", objects=room_objects,
                                           camera=self.camera, connections=room_connections)
+        room_renderer.fix()
         room_renderer.render()
+        self.save_room()
         self.current_room_obj = room_renderer
 
         return room_renderer
